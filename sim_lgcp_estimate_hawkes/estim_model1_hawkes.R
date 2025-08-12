@@ -31,7 +31,6 @@ unif.t.inv <- function(x, a, b) {
 loggaus.t.inv <- function(x, m, s) {
   bru_inverse_transformation(plnorm, x, meanlog = m, sdlog = s)
 }
-
 # exponential copula transformation
 exp.t.inv <- function(x, e) {
   bru_inverse_transformation(pexp, x, rate = e)
@@ -129,7 +128,7 @@ weight_integral2 <- function(row) {
   return(area_band_approx)
 }
 
-# find points defining the bins for an observed point (temporal)
+# find points defining the temporal bins for an observed point
 
 breaks_exp <- function(tt_, T2_, coef_, delta_, N_exp_ = 10) {
   tt_breaks <- tt_ + delta_ * ((1 + coef_)^(0:N_exp_))
