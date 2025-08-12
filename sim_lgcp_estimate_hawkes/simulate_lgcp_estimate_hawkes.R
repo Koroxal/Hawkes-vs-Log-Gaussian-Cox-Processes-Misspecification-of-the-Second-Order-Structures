@@ -85,27 +85,27 @@ sim$n
 data <- data.frame(x=sim$x, y=sim$y, t=sim$t)
 
 ggplot() +
-  geom_point(data = data, aes(x = x, y = y, color = t), size = 2.3) +  # Aumenta el tamaño de los puntos
+  geom_point(data = data, aes(x = x, y = y, color = t), size = 2.3) +  
   scale_color_gradient(
     name = "time",
     breaks = c(0, 25, 50, 75, 100),
     low = "#56B1F7",
     high = "#132B43",
-    limits = c(0, 100),  # Especificamos el rango de la leyenda
+    limits = c(0, 100), 
     guide = guide_colorbar(
-      barwidth = 2,     # Ancho de la barra
-      barheight = 15,   # Alto de la barra (aumentar este valor hace la barra más grande)
-      title.theme = element_text(size = 20),  # Tamaño del título de la barra
-      label.theme = element_text(size = 18)   # Tamaño del texto de la barra
+      barwidth = 2,     
+      barheight = 15,  
+      title.theme = element_text(size = 20),
+      label.theme = element_text(size = 18)  
     )
   ) +
   new_scale_color() +
   labs(x = "x", y = "y") +
   theme(
-    legend.title = element_text(size = 28),    # Aumenta el tamaño del título de la leyenda
-    legend.text = element_text(size = 18),     # Aumenta el tamaño del texto de la leyenda
-    axis.title = element_text(size = 20),      # Aumenta el tamaño de los títulos de los ejes
-    axis.text = element_text(size = 18)        # Aumenta el tamaño de los números de los ejes
+    legend.title = element_text(size = 28),    
+    legend.text = element_text(size = 18),     
+    axis.title = element_text(size = 20),      
+    axis.text = element_text(size = 18)       
   )
 
 
@@ -121,27 +121,27 @@ data_RAW <- data
 # Plot reference data set
 
 ggplot() +
-  geom_point(data = data, aes(x = x, y = y, color = t), size = 2.3) +  # Aumenta el tamaño de los puntos
+  geom_point(data = data, aes(x = x, y = y, color = t), size = 2.3) +  
   scale_color_gradient(
     name = "time",
     breaks = c(0, 25, 50, 75, 100),
     low = "#56B1F7",
     high = "#132B43",
-    limits = c(0, 100),  # Especificamos el rango de la leyenda
+    limits = c(0, 100),  
     guide = guide_colorbar(
-      barwidth = 2,     # Ancho de la barra
-      barheight = 15,   # Alto de la barra (aumentar este valor hace la barra más grande)
-      title.theme = element_text(size = 20),  # Tamaño del título de la barra
-      label.theme = element_text(size = 18)   # Tamaño del texto de la barra
+      barwidth = 2,    
+      barheight = 15,   
+      title.theme = element_text(size = 20),  
+      label.theme = element_text(size = 18)  
     )
   ) +
   new_scale_color() +
   labs(x = "x", y = "y") +
   theme(
-    legend.title = element_text(size = 28),    # Aumenta el tamaño del título de la leyenda
-    legend.text = element_text(size = 18),     # Aumenta el tamaño del texto de la leyenda
-    axis.title = element_text(size = 20),      # Aumenta el tamaño de los títulos de los ejes
-    axis.text = element_text(size = 18)        # Aumenta el tamaño de los números de los ejes
+    legend.title = element_text(size = 28),    
+    legend.text = element_text(size = 18),     
+    axis.title = element_text(size = 20),      
+    axis.text = element_text(size = 18)        
   )
 
 data_lgcp <- data.frame(x=data$x, y=data$y, t=data$t)
