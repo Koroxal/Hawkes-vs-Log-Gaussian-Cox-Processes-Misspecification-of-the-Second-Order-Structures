@@ -86,6 +86,7 @@ homogeneous_poisson_sampling <- function(lam, T, S) {
 }
 
 # thinning function 
+
 inhomogeneous_poisson_thinning <- function(lam, homo_points, verbose) {
   retained_points <- matrix(numeric(0), ncol = ncol(homo_points))
   if (verbose) {
