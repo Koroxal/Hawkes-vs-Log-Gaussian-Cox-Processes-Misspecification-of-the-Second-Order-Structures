@@ -3,7 +3,7 @@ This folder sim_lgcp_estimate_hawkes addresses the simulation of Log-Gaussian Co
 Main Scripts and Data
 
 "simulate_lgcp_estimate_hawkes.R" --> This is the main script. It first provides code to simulate generic data using LGCP. The file "data_from_lgcp_3003.RData"
-is an example simulation corresponding to scenario (a) in Section 3.2, specifically the dataset represented in Figure 5(a) of the paper.
+is an example simulation corresponding to scenario (a) in Section 3.4, specifically the dataset represented in Figure 5(a) of the paper.
 
 Next, the data are estimated using a misspecified Hawkes model (model 1).
 The estimation is done using the script "estim_model1_hawkes.R". To estimate data with model 2, it is sufficient to change the triggering function.
