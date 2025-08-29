@@ -110,7 +110,7 @@ ggplot() +
 
 
 ########################################################################################
-# 3.2 Model misspecification: Simulating from an LGCP, estimating with a Hawkes process
+# 3.4 Case study 2: Simulating from an LGCP, estimating with a Hawkes process
 ########################################################################################
 
 # We load the dataset used in our simulation study
@@ -118,7 +118,7 @@ ggplot() +
 load("data_from_lgcp_3003.RData")
 data_RAW <- data
 
-# Plot reference data set
+# Plot reference data set (Figure 5(a))
 
 ggplot() +
   geom_point(data = data, aes(x = x, y = y, color = t), size = 2.3) +  
@@ -177,7 +177,7 @@ plot(kin_lgcp_original)
 
 set.seed(4353)
 
-# Estimate with Hawkes model (gaussian triggering for space and temporal for time)
+# Estimate with Hawkes model (Model 1: gaussian triggering for space and temporal for time).For Model 2, it is enough to change the triggering function
 
 source("estim_model1_hawkes.R")
 
@@ -187,7 +187,7 @@ ggplot(fit_etas$bru_iinla$track, aes(x = iteration, y = mode)) +
   geom_line() +
   facet_wrap(facets = vars(effect), scales = 'free')
 
-inlabru:::make_track_plots(fit_etas)$default
+bru_convergence_plot(fit_etas)
 
 #results
 
@@ -214,7 +214,7 @@ set.seed(4353)
 pp <- generate(lam, T = c(0, 100), S = matrix(c(0, 1, 0, 1), ncol = 2, byrow = TRUE),
                batch_size = 300, min_n_points = 5, verbose = TRUE)
 
-
+# output:
 load("hawkes_data_k_functions.RData")
 
 points <- pp$data
@@ -302,6 +302,77 @@ for (i in remaining_indices) {
 lines(kin_lgcp_original$r, kin_lgcp_original$iso, type="l", ylim=c(0, 0.6))
 lines(kin_lgcp_original$r, kin_lgcp_original$theo, lty=2, col="black")
 
+# Plot together K-functions from Model 1 and Model 2 (Figure 6(a))
+
+load("kas_hawk_G_3003.RData"); kas_hawk_m1 <- kas_hawk
+load("kas_hawk_E_3003.RData"); kas_hawk_m2 <- kas_hawk
+
+# Function to filter curves 
+filter_curves <- function(kas_hawk) {
+  mean_iso_values <- sapply(kas_hawk, function(kin_hawk) mean(kin_hawk$iso, na.rm = TRUE))
+  sorted_indices <- order(mean_iso_values)
+  remaining_indices <- sorted_indices[16:(length(sorted_indices) - 2)]  # quita 15 arriba y 15 abajo
+  kas_hawk[remaining_indices]
+}
+
+# Filter both datasets
+kas_hawk_filtered_m1 <- filter_curves(kas_hawk_m1)
+kas_hawk_filtered_m2 <- filter_curves(kas_hawk_m2)
+
+# Set margins: bottom, left, top, right
+par(mar = c(5, 5, 2, 2))  
+
+# Plot the original K-function
+plot(kin_lgcp_original$r, kin_lgcp_original$iso, type = "l", ylim = c(0, 0.25),
+     xlab = "r", ylab = expression(K[inhom](r)),
+     cex.axis = 1.2,
+     cex.lab = 1.5,
+     yaxt = "n"  # desactiva los ticks y etiquetas del eje y
+)
+# Add custom y-axis labels
+axis(2, at = c(0.0, 0.1, 0.2, 0.3), labels = c("0.0", "0.1", "0.2", "0.3"), cex.axis = 1.2)    
+
+# Function to calculate min and max range for shading
+calc_minmax <- function(kas_hawk_filtered) {
+  r_vals <- kas_hawk_filtered[[1]]$r
+  iso_mat <- sapply(kas_hawk_filtered, function(kh) kh$iso)
+  
+  lower <- apply(iso_mat, 1, min, na.rm=TRUE)
+  upper <- apply(iso_mat, 1, max, na.rm=TRUE)
+  
+  list(r = r_vals, lower = lower, upper = upper)
+}
+
+# Calculate ranges for Model 1 and Model 2
+range_m1 <- calc_minmax(kas_hawk_filtered_m1)
+range_m2 <- calc_minmax(kas_hawk_filtered_m2)
+
+# Shade area for Model 1
+polygon(c(range_m1$r, rev(range_m1$r)),
+        c(range_m1$lower, rev(range_m1$upper)),
+        col=adjustcolor("red", alpha.f=0.5), border=NA)
+
+# Shade area for Model 2
+polygon(c(range_m2$r, rev(range_m2$r)),
+        c(range_m2$lower, rev(range_m2$upper)),
+        col=adjustcolor("blue", alpha.f=0.5), border=NA)
+
+# Plot original curve in black
+lines(kin_lgcp_original$r, kin_lgcp_original$iso, col="black", lwd=2)
+
+# Plot theoretical K-function as dashed line
+lines(kin_lgcp_original$r, kin_lgcp_original$theo, lty=2, col="black")
+
+# Add legend
+legend("topleft",
+       legend=c("Model 1", "Model 2"),
+       col=c(adjustcolor("red", alpha.f=0.5),
+             adjustcolor("blue", alpha.f=0.5)),
+       lty=c(1,1), lwd=c(5,5), bty="n", cex = 1.5)
+
+
+
+
 
 ########################################################################################
 # Forecast
@@ -317,6 +388,7 @@ set.seed(4353)
 pp <- generate_history(lam, T = c(90, 100), S = matrix(c(0, 1, 0, 1), ncol = 2, byrow = TRUE),
                        batch_size = 100, min_n_points = 5, verbose = TRUE, retained_points = as.matrix(history))
 
+# output:
 load("forecast_data_model1.RData")  # Load forecast data for model 1
 
 ncol <- 100  # Number of colours for the palette
