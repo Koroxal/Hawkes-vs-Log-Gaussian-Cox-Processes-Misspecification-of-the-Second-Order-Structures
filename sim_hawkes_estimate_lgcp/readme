@@ -9,7 +9,7 @@ The file "data_hawkes_1_002.RData" contains an example of simulated data from sc
 The file "lgcp_functions.R" contains functions needed to estimate, simulate, and predict using LGCP models.
 
 "data_k_functions_model3_1_002.RData" contains datasets simulated from an LGCP with estimated parameters, used to compute the K-functions (envelopes).
-"k_m3_1002.RData" and "k_m4_1002.RData" contain the K-functions for Models 3 and 4, respectively, used to replicate Figure 2(a)
+"k_m3_1002.RData" and "k_m4_1002.RData" contain the K-functions for Models 3 and 4, respectively, used to replicate Figure 2(a).
 
 Finally, "forecast_lg_m3_1002.RData" contains the output of the prediction function for Bayesian forecasting under an LGCP model.
 
