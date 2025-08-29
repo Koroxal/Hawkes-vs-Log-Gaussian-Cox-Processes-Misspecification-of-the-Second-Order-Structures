@@ -293,7 +293,6 @@ minimum.contrast.spatiotemporal.adhoc2 <- function(data, model, method,
   #                             spat = im(t(spatial.dens$Zm), 
   #                                       xcol = spatial.dens$X, yrow = spatial.dens$Y), 
   #                             model = model, nu=additionalparameters$nu)$minimum
-  print("hola")
   MINCON.TEMPORAL <- optimise(
     f = C.diff.single.im2, 
     interval = temporal.interval, 
@@ -305,7 +304,6 @@ minimum.contrast.spatiotemporal.adhoc2 <- function(data, model, method,
     model = model, 
     additionalparameters = additionalparameters
   )$minimum
-  print("adios")
   if (verbose) 
     cat("done.\n")
   result <- matrix(c(MINCON.SPATIAL, MINCON.TEMPORAL), 
@@ -409,7 +407,6 @@ minimum.contrast.spatiotemporal.adhoc2 <- function(data, model, method,
   #                             spat = im(t(spatial.dens$Zm), 
   #                                       xcol = spatial.dens$X, yrow = spatial.dens$Y), 
   #                             model = model, nu=additionalparameters$nu)$minimum
-  print("hola")
   MINCON.TEMPORAL <- optimise(
     f = C.diff.single.im2, 
     interval = temporal.interval, 
@@ -421,7 +418,6 @@ minimum.contrast.spatiotemporal.adhoc2 <- function(data, model, method,
     model = model, 
     additionalparameters = additionalparameters
   )$minimum
-  print("adios")
   if (verbose) 
     cat("done.\n")
   result <- matrix(c(MINCON.SPATIAL, MINCON.TEMPORAL), 

@@ -23,7 +23,7 @@ library(geoR)
 
 # Code to simulate a generic Hawkes process using the acceptance–rejection method
 
-# Load functions for generating Hawkes process data (model 1)
+# Load functions for generating Hawkes process data (Model 1)
 
 source("functions_generate_data_model1_hawkes.R")
 
@@ -50,14 +50,14 @@ pp <- generate(lam, T = c(0, 100), S = matrix(c(0, 1, 0, 1), ncol = 2, byrow = T
 rm(list=ls())
 
 ########################################################################################
-# 3.1 Model misspecification: Simulating from a Hawkes process, estimating with an LGCP
+# 3.3 Case study 1: Simulating from a Hawkes process, estimating with an LGCP
 ########################################################################################
 
 # We load the dataset used in our simulation study
 
 load("data_hawkes_1_002.RData")
 
-# Plot reference data set
+# Plot reference data set (Figure 1(a))
 
 ggplot() + 
   geom_point(data = pp_data_1_002, aes(x = x, y = y, color = times), size = 2.3) +  
@@ -126,6 +126,7 @@ set.seed(4353)
 source("lgcp_functions.R")
 
 # Parameter estimation using the minimum contrast ad-hoc method
+# Model 3 (exponential covariance function)
 
 parameters1 <- minimum.contrast.spatiotemporal.adhoc(
   data = xyt_hawkes,           # Spatio-temporal point pattern data (from Hawkes process)
@@ -145,12 +146,45 @@ phi_pr <- practicalRange(cov.model = "matern", kappa = 0.5, phi = round(paramete
 theta <- parameters1$estimates[3]
 sigma <- parameters1$estimates[2]
 
-rbind(sigma=sigma, phi=phi, phi_pr=phi_pr, theta=1/theta) %>% kable(., caption ="Estimates")
+rbind(sigma=sigma, phi=phi, phi_pr=phi_pr, theta=1/theta) %>% kable(., caption ="Estimates Model 3 (Exponential)")
 
 # phi_pr is the practical range derived from phi, calculated from the phi parameter, using the practicalRange function with the "matern" covariance model and kappa = 0.5 (Exponential covariance function).
 # theta is computed as the inverse of the third estimated parameter (1 / theta), to ensure consistency with the parameterisation used in the paper.
 
-# Bayesian MCMC estimation is performed below, yielding the same results; however, the computation time is significantly longer.
+# Model 4 (Matérn covariance function)
+
+parameters2 <- minimum.contrast.spatiotemporal.adhoc2(
+  data = xyt_hawkes,           # Spatio-temporal point pattern data (from Hawkes process)
+  model = "matern",            # Matern covariance model for space
+  additionalparameters=list(nu=3/2), #set v=3/2
+  method = "g",                # Use the g-function (pair correlation) for estimation
+  spatial.dens = sar,          # Estimated spatial intensity
+  temporal.intens = tar,       # Estimated temporal intensity
+  power = 0.25,                 # Weighting exponent for the contrast criterion
+  transform = NULL,            # No transformation applied
+  temporal.interval = c(.1, 5), # Interval of temporal lags to consider
+  verbose = TRUE               # Show estimation progress
+)
+
+parameters2
+phi2 <- parameters2$estimates[1]
+phi2_pr <- practicalRange(cov.model = "matern", kappa = 3/2, phi = round(parameters2$estimates[1], 3))
+theta2 <- parameters2$estimates[3]
+sigma2 <- parameters2$estimates[2]
+
+rbind(sigma=sigma2, phi=phi2, phi_pr=phi2_pr, theta=1/theta2) %>% kable(., caption ="Estimates Model 4 (Matérn)")
+
+# Table estimates for Model 3 and 4
+
+combined_table <- data.frame(
+  "Model 3" = c(sigma, phi, phi_pr, 1/theta),
+  "Model 4" = c(sigma2, phi2, phi2_pr, 1/theta2),
+  row.names = c("sigma", "phi", "phi_pr", "theta")
+)
+kable(combined_table, caption = "Estimates: Model 3 (Exponential) vs Model 4 (Matérn)")
+
+# Bayesian MCMC estimation is performed below, yielding the same results; 
+# however, the computation time is significantly longer.
 
 # Spatial window and temporal limits
 win <- owin(c(0, 1), c(0, 1))
@@ -179,7 +213,7 @@ priors <- lgcpPrior(etaprior = lgprior, betaprior = gprior)
 # Set initial values for MCMC
 INITS <- lgcpInits(etainit = log(c(2, 0.03, 1/3)), betainit = NULL)
   
-# Choose the covariance function
+# Choose the covariance function (maternCovFct15 and maternCovFct25 are also available)
 CF <- CovFunction(exponentialCovFct)
 DIRNAME <- getwd()
 
@@ -239,7 +273,8 @@ source("lgcp_functions.R")
 data_lgcps <- list()
 set.seed(4353)
 
-# Simulate 300 LGCP datasets with estimated parameters
+# Simulate 300 LGCP datasets with estimated parameters (Model 3)
+# For Model 4, the procedure is the same but changing the covariance function
 
 for(n_sim in 1:300){
   print(n_sim)
@@ -265,6 +300,7 @@ for(n_sim in 1:300){
   print(nrow(data))
 }
 
+# output: 
 load("data_k_functions_model3_1_002.RData")
 
 # Plot Hawkes process Kinhom function
@@ -337,6 +373,74 @@ for (i in remaining_indices) {
 lines(kin_hawk_original$r, kin_hawk_original$iso, type="l", ylim=c(0, 0.3))
 lines(kin_hawk_original$r, kin_hawk_original$theo, lty=2, col="black")
 
+# Plot together K-functions from Model 3 and Model 4 (Figure 2(a))
+
+load("k_m3_1002.RData"); kas_lgcp_m3 <- kas_hawk
+load("k_m4_1002.RData"); kas_lgcp_m4 <- kas_hawk
+
+# Function to filter curves 
+filter_curves <- function(kas_hawk) {
+  mean_iso_values <- sapply(kas_hawk, function(kin_hawk) mean(kin_hawk$iso, na.rm = TRUE))
+  sorted_indices <- order(mean_iso_values)
+  remaining_indices <- sorted_indices[16:(length(sorted_indices) - 1)]
+  kas_hawk[remaining_indices]
+}
+
+# Filter both datasets
+kas_lgcp_filtered_m3 <- filter_curves(kas_lgcp_m3)
+kas_lgcp_filtered_m4 <- filter_curves(kas_lgcp_m4)
+
+# Set margins: bottom, left, top, right
+par(mar = c(5, 5, 2, 2))  
+# Plot the original K-function
+plot(kin_hawk_original$r, kin_hawk_original$iso, type = "l", ylim = c(0, 0.3),
+     xlab = "r", ylab = expression(K[inhom](r)),
+     cex.axis = 1.2,
+     cex.lab = 1.5,
+     yaxt = "n"  # Disable y-axis ticks and labels
+)
+# Add custom y-axis labels
+axis(2, at = c(0.0, 0.1, 0.2, 0.3), labels = c("0.0", "0.1", "0.2", "0.3"), cex.axis = 1.2)    
+
+# Function to calculate min and max range for shading
+calc_minmax <- function(kas_hawk_filtered) {
+  r_vals <- kas_hawk_filtered[[1]]$r
+  iso_mat <- sapply(kas_hawk_filtered, function(kh) kh$iso)
+  
+  lower <- apply(iso_mat, 1, min, na.rm = TRUE)
+  upper <- apply(iso_mat, 1, max, na.rm = TRUE)
+  
+  list(r = r_vals, lower = lower, upper = upper)
+}
+
+# Calculate ranges for Model 3 and Model 4
+range_m3 <- calc_minmax(kas_lgcp_filtered_m3)
+range_m4 <- calc_minmax(kas_lgcp_filtered_m4)
+
+# Shade area for Model 3 
+polygon(c(range_m3$r, rev(range_m3$r)),
+        c(range_m3$lower, rev(range_m3$upper)),
+        col = adjustcolor("red", alpha.f = 0.4), border = NA)
+
+# Shade area for Model 4
+polygon(c(range_m4$r, rev(range_m4$r)),
+        c(range_m4$lower, rev(range_m4$upper)),
+        col = adjustcolor("blue", alpha.f = 0.4), border = NA)
+
+# Plot original curve in black
+lines(kin_hawk_original$r, kin_hawk_original$iso, col = "black", lwd = 2)
+
+# Plot theoretical K-function as dashed line
+lines(kin_hawk_original$r, kin_hawk_original$theo, lty = 2, col = "black")
+
+# Add legend
+legend("topleft",
+       legend = c("Model 3", "Model 4"),
+       col = c(adjustcolor("red", alpha.f = 0.4),
+               adjustcolor("blue", alpha.f = 0.4)),
+       lty = c(1, 1), lwd = c(5, 5), bty = "n", cex = 1.5)
+
+
 ########################################################################################
 # Forecast
 ########################################################################################
@@ -376,7 +480,7 @@ n.t <- max(data$t)
 n.t.pred <- 10
 n.lag <- 20
 
-# Run LGCP prediction with MCMC
+# Run LGCP prediction for Model 3 with MCMC (For Model 4, the procedure is the same but changing the covariance function)
 
 lg <- lgcpPredict(
   xyt = xyt,
@@ -403,6 +507,7 @@ lg <- lgcpPredict(
   )
 )
 
+# output
 load("forecast_lg_m3_1002.RData")
 lg
 
@@ -447,7 +552,7 @@ sum_intens <- (Famba$grid[[1]] + Famba$grid[[2]] + Famba$grid[[3]] + Famba$grid[
 X <- sum_intens
 X[!ff] <- NA
 image(im(t(X), xcol = Famba$xvals, yrow = Famba$yvals), col = colores_modificados, xlab = "", ylab = "", main = "", zlim = zlim_90)
-plot(unmark(xyt[xyt$t >= 90 & xyt$t <= 100]), add = TRUE, chars = 16, col = "black", cex = 1)
+plot(unmark(xyt[xyt$t >= 90 & xyt$t <= 100]), add = TRUE, chars = 16, pch=21, col = "black", bg = "white",cex = 1.2)
 
 # Plot daily forecasts with observed events
 
@@ -455,20 +560,15 @@ par(mar = c(1, 1, 1, 1))
 i <- 1
 kk <- 89 + i
 image(CIm(Famba, ff, i), col = colores_modificados, xlab = "", ylab = "", main = "", zlim = zlim_9091)
-plot(unmark(xyt[xyt$t == kk]), add = TRUE, chars = 16, col = "black", cex = 1)
+plot(unmark(xyt[xyt$t == kk]), add = TRUE, chars = 16, , pch=21, col = "black", bg = "white",cex = 1.2)
 
 par(mar = c(1, 1, 1, 1))
 i <- 2
 kk <- 89 + i
 image(CIm(Famba, ff, i), col = colores_modificados, xlab = "", ylab = "", main = "", zlim = zlim_9192)
-plot(unmark(xyt[xyt$t == kk]), add = TRUE, chars = 16, col = "black", cex = 1)
+plot(unmark(xyt[xyt$t == kk]), add = TRUE, chars = 16, pch=21, col = "black", bg = "white",cex = 1.2)
 
 # The legends in the figures of the associated paper are slightly different because they were designed to display two models being compared, both of which needed to be represented uniformly. 
 # However, this script focuses on reproducing results for a single model, to avoid overloading the code and to keep the process clear, rather than complicating it with additional details and replicates. 
 # If more information are required, please contact the authors (bernebeu@uji.es).
-
-
-
-
-
 
